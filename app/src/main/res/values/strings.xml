@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TY Downloader &amp; Converter v3.1</string>
+    <string name="tab_downloader">⬇ Downloader</string>
+    <string name="tab_converter">🔄 File Converter</string>
+    <string name="mode_video">🎬 วิดีโอ MP4</string>
+    <string name="mode_audio">🎵 เสียง MP3</string>
+    <string name="url_placeholder">วางลิงก์ (YouTube / X / Facebook / TikTok ...)</string>
+    <string name="btn_download">⬇ ดาวน์โหลด</string>
+    <string name="btn_checking">กำลังตรวจลิงก์...</string>
+    <string name="btn_cancel">✖ ยกเลิก</string>
+    <string name="btn_confirm">✅ ใช่ เริ่มโหลดเลย</string>
+    <string name="btn_reject">❌ ไม่ใช่ ยกเลิก</string>
+    <string name="prompt_confirm">ใช่วิดีโอที่ต้องการไหม?</string>
+</resources>
