@@ -5,6 +5,7 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import java.io.File
 import java.io.FileWriter
 import java.text.SimpleDateFormat
@@ -17,9 +18,12 @@ object LogManager {
     private const val TAG = "TYLogManager"
     private const val MAX_IN_MEMORY_LINES = 200
 
-    private val _logLines = MutableStateFlow<List<String>>(emptyList())
-    val logLines: StateFlow<List<String>> = _logLines.asStateFlow()
+    private val _logs = MutableStateFlow<List<String>>(emptyList())
+    val logs: StateFlow<List<String>> = _logs.asStateFlow()
+    // Backward compatibility alias
+    val logLines: StateFlow<List<String>> = _logs.asStateFlow()
 
+    private val fileLock = Any()
     private var currentFileWriter: FileWriter? = null
     var currentLogFile: File? = null
         private set
@@ -40,8 +44,10 @@ object LogManager {
             val safeSlug = identifier.replace(Regex("[^a-zA-Z0-9_-]"), "_").take(30)
             val logDir = getLogDir()
             val file = File(logDir, "ty_${category}_${timestamp}_${safeSlug}.log")
-            currentLogFile = file
-            currentFileWriter = FileWriter(file, true)
+            synchronized(fileLock) {
+                currentLogFile = file
+                currentFileWriter = FileWriter(file, true)
+            }
 
             append("==================================================")
             append("TY Downloader & Converter v3.1 Log")
@@ -56,41 +62,45 @@ object LogManager {
 
     fun append(line: String) {
         val sanitized = redactText(line)
-        val current = _logLines.value.toMutableList()
-        current.add(sanitized)
-        if (current.size > MAX_IN_MEMORY_LINES) {
-            _logLines.value = current.takeLast(MAX_IN_MEMORY_LINES)
-        } else {
-            _logLines.value = current
+
+        // Atomic & Thread-safe update using MutableStateFlow.update
+        _logs.update { current ->
+            (current + sanitized).takeLast(MAX_IN_MEMORY_LINES)
         }
 
-        try {
-            currentFileWriter?.apply {
-                write(sanitized + "\n")
-                flush()
+        synchronized(fileLock) {
+            try {
+                currentFileWriter?.apply {
+                    write(sanitized + "\n")
+                    flush()
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed writing to log file: ${e.message}")
             }
-        } catch (e: Exception) {
-            Log.w(TAG, "Failed writing to log file: ${e.message}")
         }
     }
 
     fun clear() {
-        try {
-            currentFileWriter?.close()
-        } catch (_: Exception) {}
-        currentFileWriter = null
-        currentLogFile = null
-        _logLines.value = emptyList()
+        synchronized(fileLock) {
+            try {
+                currentFileWriter?.close()
+            } catch (_: Exception) {}
+            currentFileWriter = null
+            currentLogFile = null
+        }
+        _logs.update { emptyList() }
     }
 
     fun finishSession(summary: String) {
         append("--------------------------------------------------")
         append(summary)
         append("Session ended at: ${SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())}")
-        try {
-            currentFileWriter?.close()
-        } catch (_: Exception) {}
-        currentFileWriter = null
+        synchronized(fileLock) {
+            try {
+                currentFileWriter?.close()
+            } catch (_: Exception) {}
+            currentFileWriter = null
+        }
     }
 
     private val URL_PATTERN = Pattern.compile("https?://[^\\s'\"]+")

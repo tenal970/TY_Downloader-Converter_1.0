@@ -1,5 +1,6 @@
 package com.ty.downloader.ui.components
 
+import android.os.Environment
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -41,7 +42,16 @@ fun CustomFolderDialog(
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var path by remember { mutableStateOf(initialPath.ifBlank { "/storage/emulated/0/Download/TYDownloader" }) }
+    var path by remember {
+        mutableStateOf(
+            initialPath.ifBlank {
+                java.io.File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    "TYDownloader"
+                ).absolutePath
+            }
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,

@@ -1,10 +1,12 @@
 package com.ty.downloader.engine
 
 import android.content.Context
+import android.os.Environment
 import android.util.Log
 import com.ty.downloader.data.DownloadMode
 import com.ty.downloader.data.LogManager
 import com.ty.downloader.data.PreviewInfo
+import com.ty.downloader.service.DownloadForegroundService
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
 import kotlinx.coroutines.Dispatchers
@@ -21,6 +23,9 @@ object DownloaderEngine {
 
     private var activeVideoId: String? = null
     private var activeOutDir: File? = null
+
+    val defaultDownloadDir: File
+        get() = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 
     /**
      * Inspects URL metadata and thumbnail using yt-dlp -J.
@@ -100,21 +105,30 @@ object DownloaderEngine {
         url: String,
         mode: DownloadMode,
         quality: String,
-        outDir: File,
-        videoId: String?,
-        onProgress: (Float, String) -> Unit
+        outDir: File = defaultDownloadDir,
+        videoId: String? = null,
+        onProgress: (Float, String) -> Unit = { _, _ -> }
     ): Result<String> {
         return withContext(Dispatchers.IO) {
+            val targetDir = if (outDir.exists() || outDir.mkdirs()) outDir else defaultDownloadDir.apply { mkdirs() }
             activeVideoId = videoId
-            activeOutDir = outDir
-            if (!outDir.exists()) {
-                outDir.mkdirs()
-            }
+            activeOutDir = targetDir
 
             LogManager.startSession(url, "download")
             LogManager.append("🚀 เริ่มดาวน์โหลด: ${LogManager.redactUrl(url)}")
-            LogManager.append("📁 ปลายทาง: ${outDir.absolutePath}")
+            LogManager.append("📁 ปลายทาง: ${targetDir.absolutePath}")
             LogManager.append("⚙ โหมด: ${mode.name} | คุณภาพ: $quality")
+
+            // Start foreground service to keep downloading alive in background
+            try {
+                DownloadForegroundService.startService(
+                    context,
+                    "กำลังดาวน์โหลดสื่อ",
+                    "กำลังเชื่อมต่อไปยัง ${LogManager.redactUrl(url)}"
+                )
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to start foreground service: ${e.message}")
+            }
 
             val request = YoutubeDLRequest(url)
 
@@ -141,7 +155,7 @@ object DownloaderEngine {
             request.addOption("--newline")
             request.addOption("-v")
             request.addOption("--windows-filenames")
-            request.addOption("-o", "${outDir.absolutePath}/%(title).100B [%(id)s].%(ext)s")
+            request.addOption("-o", "${targetDir.absolutePath}/%(title).100B [%(id)s].%(ext)s")
 
             var downloadedFilePath: String? = null
 
@@ -162,17 +176,25 @@ object DownloaderEngine {
                     val etaText = if (etaInSeconds > 0) " (เหลือ ~${etaInSeconds}s)" else ""
                     val progressMsg = "กำลังดาวน์โหลด: ${"%.1f".format(progress)}%$etaText"
                     onProgress(progress, progressMsg)
+
+                    // Update notification progress
+                    DownloadForegroundService.updateProgress(
+                        context,
+                        "กำลังดาวน์โหลดสื่อ",
+                        progressMsg,
+                        progress.toInt()
+                    )
                 }
 
-                // If path was not captured in stdout, find newest file matching id in outDir
+                // If path was not captured in stdout, find newest file matching id in targetDir
                 if (downloadedFilePath == null && !videoId.isNullOrBlank()) {
-                    val candidate = outDir.listFiles { file ->
+                    val candidate = targetDir.listFiles { file ->
                         file.isFile && file.name.contains("[$videoId]") && !isTempFile(file.name)
                     }?.maxByOrNull { it.lastModified() }
                     downloadedFilePath = candidate?.absolutePath
                 }
 
-                val finalPath = downloadedFilePath ?: outDir.absolutePath
+                val finalPath = downloadedFilePath ?: targetDir.absolutePath
                 LogManager.append("🎉 ดาวน์โหลดเสร็จสมบูรณ์!")
                 LogManager.append("📂 ไฟล์เซฟที่: $finalPath")
 
@@ -190,6 +212,7 @@ object DownloaderEngine {
                 Log.e(TAG, "Download execution failed", e)
                 Result.failure(e)
             } finally {
+                DownloadForegroundService.stopService(context)
                 activeOutDir = null
             }
         }

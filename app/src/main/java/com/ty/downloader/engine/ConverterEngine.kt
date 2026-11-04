@@ -10,6 +10,7 @@ import com.ty.downloader.data.LogManager
 import com.ty.downloader.data.MediaKind
 import com.ty.downloader.data.SelectedFile
 import com.ty.downloader.data.SupportedFormats
+import com.ty.downloader.service.DownloadForegroundService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
@@ -282,6 +283,16 @@ object ConverterEngine {
             LogManager.append("📁 ปลายทาง: ${outputFile.absolutePath}")
 
             try {
+                DownloadForegroundService.startService(
+                    context,
+                    "กำลังแปลงไฟล์",
+                    "กำลังแปลง ${selectedFile.displayName} เป็น $targetFormat"
+                )
+            } catch (e: Exception) {
+                Log.w(TAG, "Failed to start foreground service: ${e.message}")
+            }
+
+            try {
                 val pb = ProcessBuilder(cmd)
                 pb.redirectErrorStream(true)
                 val process = pb.start()
@@ -326,6 +337,7 @@ object ConverterEngine {
                 LogManager.finishSession("FAILED: $errMsg")
                 Result.failure(e)
             } finally {
+                DownloadForegroundService.stopService(context)
                 activeProcess = null
                 activeOutputFile = null
                 try { sourceFile.delete() } catch (_: Exception) {}

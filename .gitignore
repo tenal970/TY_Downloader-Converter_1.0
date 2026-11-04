@@ -9,3 +9,20 @@
 .cxx
 local.properties
 app/build
+
+# Built Binaries, Bundles and Packages
+*.apk
+*.ap_
+*.aab
+*.dex
+/app/release/
+/release/
+app/build/outputs/
+
+# Keystores and Signing Credentials
+*.jks
+*.keystore
+
+# Logs and Temporary files
+*.log
+antigravity_test.txt
