@@ -122,6 +122,8 @@ data class SelectedFile(
     val kind: MediaKind,
     val localFilePath: String? = null
 ) {
+    val displayName: String get() = name
+
     fun formattedSize(): String {
         val mib = sizeBytes / (1024.0 * 1024.0)
         return "%.2f MiB".format(mib)

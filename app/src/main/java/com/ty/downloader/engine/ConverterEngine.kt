@@ -286,7 +286,7 @@ object ConverterEngine {
                 DownloadForegroundService.startService(
                     context,
                     "กำลังแปลงไฟล์",
-                    "กำลังแปลง ${selectedFile.displayName} เป็น $targetFormat"
+                    "กำลังแปลง ${selectedFile.name} เป็น $targetFormat"
                 )
             } catch (e: Exception) {
                 Log.w(TAG, "Failed to start foreground service: ${e.message}")

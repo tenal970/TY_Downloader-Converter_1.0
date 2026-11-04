@@ -43,6 +43,7 @@ jobs:
           path: |
             app/build/outputs/apk/release/*.apk
             app/build/outputs/apk/debug/*.apk
+          if-no-files-found: ignore
           retention-days: 14
 
       - name: Upload Test Reports
@@ -51,4 +52,5 @@ jobs:
         with:
           name: test-reports
           path: app/build/reports/tests/
+          if-no-files-found: ignore
           retention-days: 7
