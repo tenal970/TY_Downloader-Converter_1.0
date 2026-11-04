@@ -4,15 +4,15 @@ plugins {
 }
 
 android {
-    namespace = "com.ty.downloader"
+    namespace = "com.tenal.yaoitron"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.ty.downloader"
+        applicationId = "com.tenal.yaoitron"
         minSdk = 26
         targetSdk = 34
-        versionCode = 31
-        versionName = "3.1"
+        versionCode = 2
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

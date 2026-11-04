@@ -21,5 +21,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TY Downloader & Converter"
+rootProject.name = "YAOITRON"
 include(":app")

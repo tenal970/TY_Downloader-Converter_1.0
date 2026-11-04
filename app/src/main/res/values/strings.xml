@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TY Downloader &amp; Converter v3.1</string>
+    <string name="app_name">YAOITRON</string>
     <string name="tab_downloader">⬇ Downloader</string>
     <string name="tab_converter">🔄 File Converter</string>
     <string name="mode_video">🎬 วิดีโอ MP4</string>

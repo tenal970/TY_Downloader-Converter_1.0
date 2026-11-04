@@ -1,4 +1,4 @@
-name: Build & Test TY Downloader & Converter APK
+name: Build & Test YAOITRON APK
 
 on:
   push:
@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -39,12 +42,41 @@ jobs:
         uses: actions/upload-artifact@v4
         if: success()
         with:
-          name: TY-Downloader-v3.1-Release
+          name: YAOITRON-v1.1-Release
           path: |
             app/build/outputs/apk/release/*.apk
             app/build/outputs/apk/debug/*.apk
           if-no-files-found: ignore
           retention-days: 14
+
+      - name: Create GitHub Release v1.1
+        uses: softprops/action-gh-release@v1
+        if: success() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+        with:
+          tag_name: v1.1
+          name: "YAOITRON v1.1"
+          body: |
+            🎉 **YAOITRON v1.1** — ตัวดาวน์โหลดและแปลงไฟล์สุดเจ๋ง!
+
+            ## ✨ What's New in v1.1
+            - รีแบรนด์เป็น **YAOITRON** พร้อมไอคอนตัวละครใหม่
+            - ปรับปรุง Thread-safety ใน LogManager
+            - เพิ่ม SHA256 checksum verification ใน UpdateManager
+            - ระบบดาวน์โหลด binary ตอน runtime (yt-dlp & ffmpeg)
+            - แก้ไข Network Security Config และ Foreground Service
+            - ปรับปรุง ViewModel แยก concerns ชัดเจนขึ้น
+
+            ## 📱 Download & Install
+            ดาวน์โหลดไฟล์ APK ด้านล่างและติดตั้งบน Android ได้ทันที!
+            (ต้องเปิด "Unknown Sources" / "Install unknown apps" ในการตั้งค่า)
+
+            ## 📋 Requirements
+            - Android 8.0+ (API 26+)
+            - อินเทอร์เน็ตสำหรับดาวน์โหลด
+          files: app/build/outputs/apk/release/*.apk
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: false
 
       - name: Upload Test Reports
         uses: actions/upload-artifact@v4
