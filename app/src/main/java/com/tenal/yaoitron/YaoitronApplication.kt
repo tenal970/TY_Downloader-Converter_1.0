@@ -24,8 +24,8 @@ class YaoitronApplication : Application() {
         // off the main thread to completely prevent ANR (Application Not Responding)
         applicationScope.launch {
             setupBinaries()
-            WallpaperManager.init(this@TYApplication)
-            UpdateManager.checkAndUpdateOnStartup(this@TYApplication)
+            WallpaperManager.init(this@YaoitronApplication)
+            UpdateManager.checkAndUpdateOnStartup(this@YaoitronApplication)
         }
     }
 
@@ -34,14 +34,14 @@ class YaoitronApplication : Application() {
      */
     suspend fun setupBinaries() = withContext(Dispatchers.IO) {
         try {
-            YoutubeDL.getInstance().init(this@TYApplication)
+            YoutubeDL.getInstance().init(this@YaoitronApplication)
             Log.d(TAG, "YoutubeDL native binary initialized successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize YoutubeDL: ${e.message}", e)
         }
 
         try {
-            FFmpeg.getInstance().init(this@TYApplication)
+            FFmpeg.getInstance().init(this@YaoitronApplication)
             Log.d(TAG, "FFmpeg native binary initialized successfully")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to initialize FFmpeg: ${e.message}", e)
@@ -50,7 +50,7 @@ class YaoitronApplication : Application() {
 
     companion object {
         const val TAG = "YAOITRON"
-        lateinit var instance: TYApplication
+        lateinit var instance: YaoitronApplication
             private set
     }
 }
