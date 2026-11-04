@@ -104,7 +104,7 @@ app/src/main/java/com/tenal/yaoitron/
 ## 🔄 Changelog
 
 ### v1.1 (Current)
-- 🎉 รีแบรนด์เป็น **YAOITRON** พร้อมไอคอนตัวละครใหม่
+- 🎉 รีแบรนด์เป็น **YAOITRON** 
 - 🔒 Thread-safe LogManager ด้วย `StateFlow.update`
 - 🌐 WallpaperManager รันบน `Dispatchers.IO`
 - 🔐 SHA256 Checksum verification ใน UpdateManager
