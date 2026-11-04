@@ -45,7 +45,7 @@ class AppUnitTest {
     @Test
     fun testFormattedDuration() {
         val infoShort = PreviewInfo(durationSeconds = 125L)
-        assertEquals("02:05", infoShort.formattedDuration())
+        assertEquals("2:05", infoShort.formattedDuration())
 
         val infoLong = PreviewInfo(durationSeconds = 3665L)
         assertEquals("1:01:05", infoLong.formattedDuration())
